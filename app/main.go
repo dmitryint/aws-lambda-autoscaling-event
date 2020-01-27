@@ -8,8 +8,11 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 )
 
-func handleRequest(ctx context.Context, event events.CloudWatchEvent) (string, error) {
-	fmt.Printf("Event: ", event)
+func handleRequest(ctx context.Context, sqsEvent events.SQSEvent) (string, error) {
+	for _, message := range sqsEvent.Records {
+		fmt.Printf("The message %s for event source %s = %s \n", message.MessageId, message.EventSource, message.Body)
+	}
+
 	return fmt.Sprintf("OK"), nil
 }
 
