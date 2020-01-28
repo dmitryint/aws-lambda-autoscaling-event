@@ -12,4 +12,6 @@ type AutoscalingEvent struct {
 	EC2InstanceID        string `json:"EC2InstanceId"`
 	NotificationMetadata string `json:"NotificationMetadata"`
 	LifecycleActionToken string `json:"LifecycleActionToken"`
+
+	Event string `json:"Event,omitempty"`
 }

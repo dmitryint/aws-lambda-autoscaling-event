@@ -10,11 +10,19 @@ import (
 )
 
 func makeEventHandler(record AutoscalingEvent) (func(event AutoscalingEvent) error, error) {
-	switch record.LifecycleTransition {
+	eventName := record.Event
+	if record.LifecycleTransition != "" {
+		eventName = record.LifecycleTransition
+	}
+	switch eventName {
 	case "autoscaling:EC2_INSTANCE_LAUNCHING":
 		return CWPutMetricAlarm, nil
 	case "autoscaling:EC2_INSTANCE_TERMINATING":
 		return CWDeleteMetricAlarm, nil
+	case "autoscaling:TEST_NOTIFICATION":
+		return func(event AutoscalingEvent) error {
+			return nil
+		}, nil
 	default:
 		return func(event AutoscalingEvent) error {
 			return fmt.Errorf("")
