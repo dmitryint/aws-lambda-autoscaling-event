@@ -30,7 +30,7 @@ go-compile: go-build
 go-build:
 	@echo "  >  Building binary..."
 	@mkdir -p "$(GOCACHE)"
-	@GOOS=darwin GOARCH=amd64 GOCACHE="$(GOCACHE)" go build -mod vendor $(LDFLAGS) -o "$(GOBIN)/$(PROJECTNAME)-darwin-amd64" app/main.go
-	@GOOS=linux GOARCH=amd64 GOCACHE="$(GOCACHE)" go build -mod vendor $(LDFLAGS) -o "$(GOBIN)/$(PROJECTNAME)-linux-amd64" app/main.go
+	@GOOS=darwin GOARCH=amd64 GOCACHE="$(GOCACHE)" go build -mod vendor $(LDFLAGS) -o "$(GOBIN)/$(PROJECTNAME)-darwin-amd64" app/*
+	@GOOS=linux GOARCH=amd64 GOCACHE="$(GOCACHE)" go build -mod vendor $(LDFLAGS) -o "$(GOBIN)/$(PROJECTNAME)-linux-amd64" app/*
 
 	@cp "$(GOBIN)/$(PROJECTNAME)-linux-amd64" "$(GOBIN)/$(LAMBDA_HANDLER)"

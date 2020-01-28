@@ -1,16 +1,42 @@
 package main
 
 import (
-	"fmt"
 	"context"
+	"encoding/json"
+	"fmt"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 )
 
+func makeEventHandler(record AutoscalingEvent) (func(event AutoscalingEvent) error, error) {
+	switch record.LifecycleTransition {
+	case "autoscaling:EC2_INSTANCE_LAUNCHING":
+		return CWPutMetricAlarm, nil
+	case "autoscaling:EC2_INSTANCE_TERMINATING":
+		return CWDeleteMetricAlarm, nil
+	default:
+		return func(event AutoscalingEvent) error {
+			return fmt.Errorf("")
+		}, fmt.Errorf("Unknown LifecycleTransition: %s", record.LifecycleTransition)
+	}
+}
+
 func handleRequest(ctx context.Context, sqsEvent events.SQSEvent) (string, error) {
 	for _, message := range sqsEvent.Records {
 		fmt.Printf("The message %s for event source %s = %s \n", message.MessageId, message.EventSource, message.Body)
+		var record AutoscalingEvent
+		if err := json.Unmarshal([]byte(message.Body), &record); err != nil {
+			return "", fmt.Errorf("Unable to unmarshal Message")
+		}
+		processEvent, err := makeEventHandler(record)
+		if err != nil {
+			return "", err
+		}
+		err = processEvent(record)
+		if err != nil {
+			return "", err
+		}
 	}
 
 	return fmt.Sprintf("OK"), nil
