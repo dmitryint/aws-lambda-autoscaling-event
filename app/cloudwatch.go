@@ -87,7 +87,7 @@ func CWDeleteDiskSpaceUtilizationMetricAlarm(event AutoscalingEvent) error {
 }
 
 // Creates CloudWatch Alarm for specified instance
-func CWPutStatusCheckFailedMetricAlarm(event AutoscalingEvent) error {
+func CWPutStatusCheckFailedSystemMetricAlarm(event AutoscalingEvent) error {
 	metadata := AutoscalingNotificationMetadata{}
 	alarmActions := []*string{
 		// https://docs.aws.amazon.com/AmazonCloudWatch/latest/APIReference/API_PutMetricAlarm.html
@@ -101,11 +101,11 @@ func CWPutStatusCheckFailedMetricAlarm(event AutoscalingEvent) error {
 		alarmActions = append(alarmActions, aws.String(metadata.SNSNotificationTopicArn))
 	}
 	_, err := Cloudwatch.PutMetricAlarm(&cloudwatch.PutMetricAlarmInput{
-		AlarmName:          aws.String("ASG/" + event.AutoScalingGroupName + "/" + event.EC2InstanceID + "/StatusCheckFailed"),
+		AlarmName:          aws.String("ASG/" + event.AutoScalingGroupName + "/" + event.EC2InstanceID + "/StatusCheckFailed_System"),
 		ComparisonOperator: aws.String(cloudwatch.ComparisonOperatorGreaterThanOrEqualToThreshold),
 		EvaluationPeriods:  aws.Int64(1),
 		Namespace:          aws.String("AWS/EC2"),
-		MetricName:         aws.String("StatusCheckFailed"),
+		MetricName:         aws.String("StatusCheckFailed_System"),
 		Period:             aws.Int64(300.0),
 		Statistic:          aws.String(cloudwatch.StatisticMaximum),
 		Threshold:          aws.Float64(1.0),
@@ -123,10 +123,10 @@ func CWPutStatusCheckFailedMetricAlarm(event AutoscalingEvent) error {
 }
 
 // Removes CloudWatch Alarm for specified instance
-func CWDeleteCheckFailedMetricAlarm(event AutoscalingEvent) error {
+func CWDeleteCheckFailedSystemMetricAlarm(event AutoscalingEvent) error {
 	params := &cloudwatch.DeleteAlarmsInput{
 		AlarmNames: []*string{
-			aws.String("ASG/" + event.AutoScalingGroupName + "/" + event.EC2InstanceID + "/StatusCheckFailed"),
+			aws.String("ASG/" + event.AutoScalingGroupName + "/" + event.EC2InstanceID + "/StatusCheckFailed_System"),
 		}}
 	resp, err := Cloudwatch.DeleteAlarms(params)
 	if err != nil {

@@ -16,7 +16,7 @@ func onEc2InstanceLaunching(event AutoscalingEvent) error {
 		return err
 	}
 
-	err = CWPutStatusCheckFailedMetricAlarm(event)
+	err = CWPutStatusCheckFailedSystemMetricAlarm(event)
 	if err != nil {
 		CompleteLifecycleAction(event, "ABANDON")
 		return err
@@ -32,7 +32,7 @@ func onEc2InstanceTerminating(event AutoscalingEvent) error {
 		return err
 	}
 
-	err = CWDeleteCheckFailedMetricAlarm(event)
+	err = CWDeleteCheckFailedSystemMetricAlarm(event)
 	if err != nil {
 		return err
 	}
