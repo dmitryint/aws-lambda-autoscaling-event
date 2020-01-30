@@ -22,10 +22,8 @@ func onEc2InstanceLaunching(event AutoscalingEvent) error {
 func onEc2InstanceTerminating(event AutoscalingEvent) error {
 	err := CWDeleteMetricAlarm(event)
 	if err != nil {
-		CompleteLifecycleAction(event, "ABANDON")
 		return err
 	}
-	CompleteLifecycleAction(event, "CONTINUE")
 	return err
 }
 
