@@ -15,6 +15,13 @@ func onEc2InstanceLaunching(event AutoscalingEvent) error {
 		CompleteLifecycleAction(event, "ABANDON")
 		return err
 	}
+
+	err = CWPutStatusCheckFailedMetricAlarm(event)
+	if err != nil {
+		CompleteLifecycleAction(event, "ABANDON")
+		return err
+	}
+
 	CompleteLifecycleAction(event, "CONTINUE")
 	return err
 }
@@ -24,6 +31,12 @@ func onEc2InstanceTerminating(event AutoscalingEvent) error {
 	if err != nil {
 		return err
 	}
+
+	err = CWDeleteCheckFailedMetricAlarm(event)
+	if err != nil {
+		return err
+	}
+
 	return err
 }
 
