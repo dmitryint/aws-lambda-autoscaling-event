@@ -12,24 +12,20 @@ import (
 func onEc2InstanceLaunching(event AutoscalingEvent) error {
 	err := CWPutMetricAlarm(event)
 	if err != nil {
-		if err := CompleteLifecycleAction(event, "ABANDON"); err != nil {
-			return err
-		}
+		CompleteLifecycleAction(event, "ABANDON")
 		return err
 	}
-	err = CompleteLifecycleAction(event, "CONTINUE")
+	CompleteLifecycleAction(event, "CONTINUE")
 	return err
 }
 
 func onEc2InstanceTerminating(event AutoscalingEvent) error {
 	err := CWDeleteMetricAlarm(event)
 	if err != nil {
-		if err := CompleteLifecycleAction(event, "ABANDON"); err != nil {
-			return err
-		}
+		CompleteLifecycleAction(event, "ABANDON")
 		return err
 	}
-	err = CompleteLifecycleAction(event, "CONTINUE")
+	CompleteLifecycleAction(event, "CONTINUE")
 	return err
 }
 
