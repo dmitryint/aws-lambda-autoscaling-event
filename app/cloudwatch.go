@@ -23,8 +23,14 @@ func CWPutMetricAlarm(event AutoscalingEvent) error {
 		DiskSpaceUtilizationFilesystem: "/dev/nvme0n1p1",
 		DiskSpaceUtilizationMountPath:  "/",
 	}
+	alarmActions := []*string{}
+	actionsEnabled := false
 	if err := json.Unmarshal([]byte(event.NotificationMetadata), &metadata); err != nil {
 		return err
+	}
+	if metadata.SNSNotificationTopicArn != "" {
+		alarmActions = append(alarmActions, aws.String(metadata.SNSNotificationTopicArn))
+		actionsEnabled = true
 	}
 	_, err := Cloudwatch.PutMetricAlarm(&cloudwatch.PutMetricAlarmInput{
 		AlarmName:          aws.String("ASG/" + event.AutoScalingGroupName + "/" + event.EC2InstanceID),
@@ -35,9 +41,9 @@ func CWPutMetricAlarm(event AutoscalingEvent) error {
 		Period:             aws.Int64(metadata.DiskSpaceUtilizationPeriod),
 		Statistic:          aws.String(cloudwatch.StatisticAverage),
 		Threshold:          aws.Float64(metadata.DiskSpaceUtilizationThreshold),
-		ActionsEnabled:     aws.Bool(false),
+		ActionsEnabled:     aws.Bool(actionsEnabled),
 		AlarmDescription:   aws.String("Alarm when server Disk Space Utilization exceeds 70%"),
-
+		AlarmActions:       alarmActions,
 		// This is apart of the default workflow actions. This one will reboot the instance, if the
 		// alarm is triggered.
 		// AlarmActions: []*string{

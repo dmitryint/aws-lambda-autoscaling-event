@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/autoscaling"
 )
@@ -30,5 +31,9 @@ func CompleteLifecycleAction(event AutoscalingEvent, result string) error {
 		LifecycleHookName:     aws.String(event.LifecycleHookName),
 	}
 	_, err := Autoscaling.CompleteLifecycleAction(input)
+	if err != nil {
+		// Message from an error.
+		fmt.Println(err.Error())
+	}
 	return err
 }
