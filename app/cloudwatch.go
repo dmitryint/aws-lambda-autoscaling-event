@@ -8,8 +8,8 @@ import (
 )
 
 type AutoscalingNotificationMetadata struct {
-	DiskSpaceUtilizationPeriod     int64   `json:"DiskSpaceUtilizationPeriod"`
-	DiskSpaceUtilizationThreshold  float64 `json:"DiskSpaceUtilizationThreshold"`
+	DiskSpaceUtilizationPeriod     int64   `json:"DiskSpaceUtilizationPeriod,string"`
+	DiskSpaceUtilizationThreshold  float64 `json:"DiskSpaceUtilizationThreshold,string"`
 	SNSNotificationTopicArn        string  `json:"SNSNotificationTopicArn"`
 	DiskSpaceUtilizationFilesystem string  `json:"DiskSpaceUtilizationFilesystem"`
 	DiskSpaceUtilizationMountPath  string  `json:"DiskSpaceUtilizationMountPath"`
