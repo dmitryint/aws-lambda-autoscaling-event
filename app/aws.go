@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/autoscaling"
 	"github.com/aws/aws-sdk-go/service/cloudwatch"
@@ -30,5 +29,5 @@ func NewCloudwatch() *cloudwatch.CloudWatch {
 
 // Get current AWS Region
 func GetAWSRegion() string {
-	return fmt.Sprintf("%v", sess.Config.Region)
+	return *sess.Config.Region
 }
