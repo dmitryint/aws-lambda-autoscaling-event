@@ -10,7 +10,7 @@ import (
 )
 
 func onEc2InstanceLaunching(event AutoscalingEvent) error {
-	err := CWPutMetricAlarm(event)
+	err := CWPutDiskSpaceUtilizationMetricAlarm(event)
 	if err != nil {
 		CompleteLifecycleAction(event, "ABANDON")
 		return err
@@ -20,7 +20,7 @@ func onEc2InstanceLaunching(event AutoscalingEvent) error {
 }
 
 func onEc2InstanceTerminating(event AutoscalingEvent) error {
-	err := CWDeleteMetricAlarm(event)
+	err := CWDeleteDiskSpaceUtilizationMetricAlarm(event)
 	if err != nil {
 		return err
 	}

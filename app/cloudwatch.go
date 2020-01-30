@@ -16,7 +16,7 @@ type AutoscalingNotificationMetadata struct {
 }
 
 // Creates CloudWatch Alarm for specified instance
-func CWPutMetricAlarm(event AutoscalingEvent) error {
+func CWPutDiskSpaceUtilizationMetricAlarm(event AutoscalingEvent) error {
 	metadata := AutoscalingNotificationMetadata{
 		DiskSpaceUtilizationPeriod:     300,
 		DiskSpaceUtilizationThreshold:  70.0,
@@ -68,7 +68,7 @@ func CWPutMetricAlarm(event AutoscalingEvent) error {
 }
 
 // Removes CloudWatch Alarm for specified instance
-func CWDeleteMetricAlarm(event AutoscalingEvent) error {
+func CWDeleteDiskSpaceUtilizationMetricAlarm(event AutoscalingEvent) error {
 	params := &cloudwatch.DeleteAlarmsInput{
 		AlarmNames: []*string{
 			aws.String("ASG/" + event.AutoScalingGroupName + "/" + event.EC2InstanceID),
