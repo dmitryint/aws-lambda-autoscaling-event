@@ -1,25 +1,42 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudwatch"
 )
 
+type AutoscalingNotificationMetadata struct {
+	DiskSpaceUtilizationPeriod     int64   `json:"DiskSpaceUtilizationPeriod"`
+	DiskSpaceUtilizationThreshold  float64 `json:"DiskSpaceUtilizationThreshold"`
+	SNSNotificationTopicArn        string  `json:"SNSNotificationTopicArn"`
+	DiskSpaceUtilizationFilesystem string  `json:"DiskSpaceUtilizationFilesystem"`
+	DiskSpaceUtilizationMountPath  string  `json:"DiskSpaceUtilizationMountPath"`
+}
+
 // Creates CloudWatch Alarm for specified instance
 func CWPutMetricAlarm(event AutoscalingEvent) error {
+	metadata := AutoscalingNotificationMetadata{
+		DiskSpaceUtilizationPeriod:     300,
+		DiskSpaceUtilizationThreshold:  70.0,
+		DiskSpaceUtilizationFilesystem: "/dev/nvme0n1p1",
+		DiskSpaceUtilizationMountPath:  "/",
+	}
+	if err := json.Unmarshal([]byte(event.NotificationMetadata), &metadata); err != nil {
+		return err
+	}
 	_, err := Cloudwatch.PutMetricAlarm(&cloudwatch.PutMetricAlarmInput{
-		AlarmName:          aws.String(event.AutoScalingGroupName + "-" + event.EC2InstanceID),
+		AlarmName:          aws.String("ASG/" + event.AutoScalingGroupName + "/" + event.EC2InstanceID),
 		ComparisonOperator: aws.String(cloudwatch.ComparisonOperatorGreaterThanThreshold),
 		EvaluationPeriods:  aws.Int64(1),
 		MetricName:         aws.String("DiskSpaceUtilization"),
 		Namespace:          aws.String("System/Linux"),
-		Period:             aws.Int64(300),
+		Period:             aws.Int64(metadata.DiskSpaceUtilizationPeriod),
 		Statistic:          aws.String(cloudwatch.StatisticAverage),
-		Threshold:          aws.Float64(70.0),
+		Threshold:          aws.Float64(metadata.DiskSpaceUtilizationThreshold),
 		ActionsEnabled:     aws.Bool(false),
 		AlarmDescription:   aws.String("Alarm when server Disk Space Utilization exceeds 70%"),
-		Unit:               aws.String(cloudwatch.StandardUnitSeconds),
 
 		// This is apart of the default workflow actions. This one will reboot the instance, if the
 		// alarm is triggered.
@@ -29,7 +46,7 @@ func CWPutMetricAlarm(event AutoscalingEvent) error {
 		Dimensions: []*cloudwatch.Dimension{
 			{
 				Name:  aws.String("MountPath"),
-				Value: aws.String("/"),
+				Value: aws.String(metadata.DiskSpaceUtilizationMountPath),
 			},
 			{
 				Name:  aws.String("InstanceId"),
@@ -37,7 +54,7 @@ func CWPutMetricAlarm(event AutoscalingEvent) error {
 			},
 			{
 				Name:  aws.String("Filesystem"),
-				Value: aws.String("/dev/nvme0n1p1"),
+				Value: aws.String(metadata.DiskSpaceUtilizationFilesystem),
 			},
 		},
 	})
@@ -48,7 +65,7 @@ func CWPutMetricAlarm(event AutoscalingEvent) error {
 func CWDeleteMetricAlarm(event AutoscalingEvent) error {
 	params := &cloudwatch.DeleteAlarmsInput{
 		AlarmNames: []*string{
-			aws.String(event.AutoScalingGroupName + "-" + event.EC2InstanceID),
+			aws.String("ASG/" + event.AutoScalingGroupName + "/" + event.EC2InstanceID),
 		}}
 	resp, err := Cloudwatch.DeleteAlarms(params)
 	if err != nil {

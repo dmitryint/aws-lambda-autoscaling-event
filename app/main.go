@@ -9,6 +9,30 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 )
 
+func onEc2InstanceLaunching(event AutoscalingEvent) error {
+	err := CWPutMetricAlarm(event)
+	if err != nil {
+		if err := CompleteLifecycleAction(event, "ABANDON"); err != nil {
+			return err
+		}
+		return err
+	}
+	err = CompleteLifecycleAction(event, "CONTINUE")
+	return err
+}
+
+func onEc2InstanceTerminating(event AutoscalingEvent) error {
+	err := CWDeleteMetricAlarm(event)
+	if err != nil {
+		if err := CompleteLifecycleAction(event, "ABANDON"); err != nil {
+			return err
+		}
+		return err
+	}
+	err = CompleteLifecycleAction(event, "CONTINUE")
+	return err
+}
+
 func makeEventHandler(record AutoscalingEvent) (func(event AutoscalingEvent) error, error) {
 	eventName := record.Event
 	if record.LifecycleTransition != "" {
@@ -16,9 +40,9 @@ func makeEventHandler(record AutoscalingEvent) (func(event AutoscalingEvent) err
 	}
 	switch eventName {
 	case "autoscaling:EC2_INSTANCE_LAUNCHING":
-		return CWPutMetricAlarm, nil
+		return onEc2InstanceLaunching, nil
 	case "autoscaling:EC2_INSTANCE_TERMINATING":
-		return CWDeleteMetricAlarm, nil
+		return onEc2InstanceTerminating, nil
 	case "autoscaling:TEST_NOTIFICATION":
 		return func(event AutoscalingEvent) error {
 			return nil
