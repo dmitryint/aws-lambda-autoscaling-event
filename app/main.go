@@ -22,22 +22,34 @@ func onEc2InstanceLaunching(event AutoscalingEvent) error {
 		return err
 	}
 
+	err = CWPutStatusCheckFailedInstanceMetricAlarm(event)
+	if err != nil {
+		CompleteLifecycleAction(event, "ABANDON")
+		return err
+	}
+
 	CompleteLifecycleAction(event, "CONTINUE")
 	return err
 }
 
 func onEc2InstanceTerminating(event AutoscalingEvent) error {
+	errorResponse := error(nil)
 	err := CWDeleteDiskSpaceUtilizationMetricAlarm(event)
 	if err != nil {
-		return err
+		errorResponse = err
 	}
 
 	err = CWDeleteCheckFailedSystemMetricAlarm(event)
 	if err != nil {
-		return err
+		errorResponse = err
 	}
 
-	return err
+	err = CWDeleteCheckFailedInstanceMetricAlarm(event)
+	if err != nil {
+		errorResponse = err
+	}
+
+	return errorResponse
 }
 
 func makeEventHandler(record AutoscalingEvent) (func(event AutoscalingEvent) error, error) {

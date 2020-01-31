@@ -110,7 +110,7 @@ func CWPutStatusCheckFailedSystemMetricAlarm(event AutoscalingEvent) error {
 		Statistic:          aws.String(cloudwatch.StatisticMaximum),
 		Threshold:          aws.Float64(1.0),
 		ActionsEnabled:     aws.Bool(true),
-		AlarmDescription:   aws.String("Alarm when the Status Check Failed"),
+		AlarmDescription:   aws.String("Alarm when the System Status Check Failed"),
 		AlarmActions:       alarmActions,
 		Dimensions: []*cloudwatch.Dimension{
 			{
@@ -127,6 +127,61 @@ func CWDeleteCheckFailedSystemMetricAlarm(event AutoscalingEvent) error {
 	params := &cloudwatch.DeleteAlarmsInput{
 		AlarmNames: []*string{
 			aws.String("ASG/" + event.AutoScalingGroupName + "/" + event.EC2InstanceID + "/StatusCheckFailed_System"),
+		}}
+	resp, err := Cloudwatch.DeleteAlarms(params)
+	if err != nil {
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return err
+	}
+
+	// Pretty-print the response data.
+	fmt.Println(resp)
+	return nil
+}
+
+// Creates CloudWatch Alarm for specified instance
+func CWPutStatusCheckFailedInstanceMetricAlarm(event AutoscalingEvent) error {
+	metadata := AutoscalingNotificationMetadata{}
+	alarmActions := []*string{
+		// https://docs.aws.amazon.com/AmazonCloudWatch/latest/APIReference/API_PutMetricAlarm.html
+		// Recover EC2 Instance
+		aws.String(fmt.Sprintf("arn:aws:automate:%s:ec2:reboot", AwsRegion)),
+	}
+	if err := json.Unmarshal([]byte(event.NotificationMetadata), &metadata); err != nil {
+		return err
+	}
+	if metadata.SNSNotificationTopicArn != "" {
+		alarmActions = append(alarmActions, aws.String(metadata.SNSNotificationTopicArn))
+	}
+	_, err := Cloudwatch.PutMetricAlarm(&cloudwatch.PutMetricAlarmInput{
+		AlarmName:          aws.String("ASG/" + event.AutoScalingGroupName + "/" + event.EC2InstanceID + "/StatusCheckFailed_Instance"),
+		ComparisonOperator: aws.String(cloudwatch.ComparisonOperatorGreaterThanOrEqualToThreshold),
+		EvaluationPeriods:  aws.Int64(1),
+		Namespace:          aws.String("AWS/EC2"),
+		MetricName:         aws.String("StatusCheckFailed_Instance"),
+		Period:             aws.Int64(300.0),
+		Statistic:          aws.String(cloudwatch.StatisticMaximum),
+		Threshold:          aws.Float64(1.0),
+		ActionsEnabled:     aws.Bool(true),
+		AlarmDescription:   aws.String("Alarm when the Instance Status Check Failed"),
+		AlarmActions:       alarmActions,
+		Dimensions: []*cloudwatch.Dimension{
+			{
+				Name:  aws.String("InstanceId"),
+				Value: aws.String(event.EC2InstanceID),
+			},
+		},
+	})
+	return err
+}
+
+// Removes CloudWatch Alarm for specified instance
+func CWDeleteCheckFailedInstanceMetricAlarm(event AutoscalingEvent) error {
+	params := &cloudwatch.DeleteAlarmsInput{
+		AlarmNames: []*string{
+			aws.String("ASG/" + event.AutoScalingGroupName + "/" + event.EC2InstanceID + "/StatusCheckFailed_Instance"),
 		}}
 	resp, err := Cloudwatch.DeleteAlarms(params)
 	if err != nil {
