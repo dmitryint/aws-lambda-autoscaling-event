@@ -49,6 +49,7 @@ func onEc2InstanceTerminating(event AutoscalingEvent) error {
 		errorResponse = err
 	}
 
+	CompleteLifecycleAction(event, "CONTINUE")
 	return errorResponse
 }
 
