@@ -61,11 +61,12 @@ func makeEventHandler(record AutoscalingEvent) (func(event AutoscalingEvent) err
 	}
 }
 
-func handleRequest(ctx context.Context, sqsEvent events.SQSEvent) (string, error) {
+func handleRequest(ctx context.Context, sqsEvent events.SNSEvent) (string, error) {
 	for _, message := range sqsEvent.Records {
-		fmt.Printf("The message %s for event source %s = %s \n", message.MessageId, message.EventSource, message.Body)
+		entity := message.SNS
+		fmt.Printf("The message %s for event source %s = %s \n", entity.MessageID, message.EventSource, entity.Message)
 		var record AutoscalingEvent
-		if err := json.Unmarshal([]byte(message.Body), &record); err != nil {
+		if err := json.Unmarshal([]byte(entity.Message), &record); err != nil {
 			return "", fmt.Errorf("Unable to unmarshal Message")
 		}
 		processEvent, err := makeEventHandler(record)
