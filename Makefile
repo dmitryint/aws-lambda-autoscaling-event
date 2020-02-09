@@ -25,6 +25,10 @@ compile:
 clean:
 	@rm -f bin/*
 
+lambda:
+	@echo "  >  Building Lambda packange..."
+	@cd bin; zip ../lambda.zip "$(PROJECTNAME)-linux-amd64"
+
 go-compile: go-build
 
 go-build:
