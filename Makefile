@@ -27,7 +27,7 @@ clean:
 
 lambda:
 	@echo "  >  Building Lambda packange..."
-	@cd bin; zip ../lambda.zip "$(PROJECTNAME)-linux-amd64"
+	@cd bin; zip ../lambda.zip "$(LAMBDA_HANDLER)"
 
 go-compile: go-build
 
